@@ -1,5 +1,131 @@
-<form method="post">
-    <input name="title" placeholder="标题"><br>
-    <textarea name="content"></textarea><br>
-    <button>发布</button>
-</form>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviary - 富文本编辑器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Aviary - 富文本编辑器</h1>
+            <p class="subtitle">支持Markdown语法和富文本编辑</p>
+        </header>
+        
+        <div class="editor-container">
+            <form method="POST" action="/save">
+                <input type="hidden" name="post_id" value="{{ post_id if post_id else '' }}">
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="粗体" data-command="bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="toolbar-btn" title="斜体" data-command="italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="toolbar-btn" title="下划线" data-command="underline"><i class="fas fa-underline"></i></button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="标题1" data-command="h1"><i class="fas fa-heading"></i>1</button>
+                        <button type="button" class="toolbar-btn" title="标题2" data-command="h2"><i class="fas fa-heading"></i>2</button>
+                        <button type="button" class="toolbar-btn" title="标题3" data-command="h3"><i class="fas fa-heading"></i>3</button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="无序列表" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="toolbar-btn" title="有序列表" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="toolbar-btn" title="引用" data-command="blockquote"><i class="fas fa-quote-right"></i></button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="链接" data-command="createLink"><i class="fas fa-link"></i></button>
+                        <button type="button" class="toolbar-btn" title="图片" id="image-btn"><i class="fas fa-image"></i></button>
+                        <input type="file" id="image-upload" class="image-upload" accept="image/*">
+                        <button type="button" class="toolbar-btn" title="代码" data-command="code"><i class="fas fa-code"></i></button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" title="撤销" data-command="undo"><i class="fas fa-undo"></i></button>
+                        <button type="button" class="toolbar-btn" title="重做" data-command="redo"><i class="fas fa-redo"></i></button>
+                    </div>
+                </div>
+                
+                <div class="editor-area">
+                    <div class="editor-panel">
+                        <div class="panel-header">
+                            <span class="panel-title">标题</span>
+                        </div>
+                        <input type="text" name="title" value="{{ title if title else '' }}" required maxlength="100" 
+                               style="width: 100%; padding: 10px; border: 1px solid #eaeaea; border-radius: 4px; margin-bottom: 15px;">
+                        
+                        <div class="panel-header">
+                            <span class="panel-title">内容</span>
+                            <div class="mode-switch">
+                                <button type="button" class="mode-btn active" id="markdown-mode">Markdown</button>
+                                <button type="button" class="mode-btn" id="rich-text-mode">富文本</button>
+                            </div>
+                        </div>
+                        <textarea id="editor" name="content" required maxlength="5000">{{ content if content else '' }}</textarea>
+                    </div>
+                    
+                    <div class="editor-panel">
+                        <div class="panel-header">
+                            <span class="panel-title">预览</span>
+                        </div>
+                        <div class="preview" id="preview"></div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <a href="/" class="btn btn-secondary">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 富文本编辑器功能脚本
+        document.addEventListener('DOMContentLoaded', function() {
+            const editor = document.getElementById('editor');
+            const preview = document.getElementById('preview');
+            const markdownMode = document.getElementById('markdown-mode');
+            const richTextMode = document.getElementById('rich-text-mode');
+            
+            // 初始化编辑器
+            editor.style.display = 'block';
+            
+            // 工具栏按钮功能
+            document.querySelectorAll('[data-command]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    document.execCommand(command, false, null);
+                    editor.focus();
+                });
+            });
+            
+            // 图片上传
+            document.getElementById('image-btn').addEventListener('click', function() {
+                document.getElementById('image-upload').click();
+            });
+            
+            // 模式切换
+            markdownMode.addEventListener('click', function() {
+                this.classList.add('active');
+                richTextMode.classList.remove('active');
+                // 切换到Markdown模式逻辑
+            });
+            
+            richTextMode.addEventListener('click', function() {
+                this.classList.add('active');
+                markdownMode.classList.remove('active');
+                // 切换到富文本模式逻辑
+            });
+            
+            // 实时预览
+            editor.addEventListener('input', function() {
+                preview.innerHTML = this.value;
+            });
+        });
+    </script>
+</body>
+</html>

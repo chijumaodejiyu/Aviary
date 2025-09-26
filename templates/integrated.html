@@ -1,49 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>Aviary - 文章推送管理系统v1.0</title>
-    <style>
-        .post-list { margin-bottom: 20px; }
-        .post-item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
-        .editor { margin: 20px 0; }
-        .actions { margin: 10px 0; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviary - 文章管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Aviary</h1>
-    
-    <!-- 文章编辑器 -->
-    <div class="editor">
-        <h2>{{ '编辑文章' if edit_mode else '新建文章' }}</h2>
-        <form method="POST" action="/save">
-            <input type="hidden" name="post_id" value="{{ post_id }}">
-            <div>
-                <label>标题:</label>
-                <input type="text" name="title" value="{{ title }}" required maxlength="100">
-            </div>
-            <div>
-                <label>内容:</label>
-                <textarea name="content" required maxlength="5000">{{ content }}</textarea>
-            </div>
-            <button type="submit">保存</button>
-            <a href="/">取消</a>
-        </form>
-    </div>
+    <div class="container">
+        <header>
+            <h1>Aviary - 文章管理系统</h1>
+            <p class="subtitle">管理您的所有文章</p>
+        </header>
 
-    <!-- 文章列表 -->
-    <div class="post-list">
-        <h2>文章列表</h2>
-        {% for post in posts %}
-        <div class="post-item">
-            <h3>{{ post.title }}</h3>
-            <p>{{ post.content }}</p>
-            <small>{{ post.created_at }}</small>
-            <div class="actions">
-                <a href="/edit/{{ post.id }}">编辑</a>
-                <a href="/delete/{{ post.id }}">删除</a>
+        <!-- 文章编辑器 -->
+        <div class="editor-container">
+            <div class="panel-header">
+                <span class="panel-title">{{ '编辑文章' if edit_mode else '新建文章' }}</span>
+            </div>
+            <div class="editor-panel">
+                <form method="POST" action="/save">
+                    <input type="hidden" name="post_id" value="{{ post_id }}">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">标题:</label>
+                        <input type="text" name="title" value="{{ title }}" required maxlength="100" 
+                               style="width: 100%; padding: 10px; border: 1px solid #eaeaea; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">内容:</label>
+                        <textarea name="content" required maxlength="5000" 
+                                  style="width: 100%; min-height: 300px; padding: 15px; border: 1px solid #eaeaea; border-radius: 4px; resize: vertical;">{{ content }}</textarea>
+                    </div>
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        <a href="/" class="btn btn-secondary">取消</a>
+                    </div>
+                </form>
             </div>
         </div>
-        {% endfor %}
+
+        <!-- 文章列表 -->
+        <div class="post-list">
+            <div class="panel-header">
+                <span class="panel-title">文章列表</span>
+            </div>
+            {% for post in posts %}
+            <div class="post-item">
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.content }}</p>
+                <small>{{ post.created_at }}</small>
+                <div class="actions">
+                    <a href="/edit/{{ post.id }}" class="btn btn-primary">编辑</a>
+                    <a href="/delete/{{ post.id }}" class="btn btn-danger">删除</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </body>
 </html>

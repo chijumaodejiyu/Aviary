@@ -1,0 +1,246 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1, h2, h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+/* 编辑器样式 */
+.editor-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eaeaea;
+    gap: 5px;
+}
+
+.toolbar-group {
+    display: flex;
+    border-right: 1px solid #ddd;
+    padding-right: 10px;
+    margin-right: 10px;
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+    margin-right: 0;
+}
+
+.toolbar-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+    background: #e9ecef;
+    color: #2c3e50;
+}
+
+.toolbar-btn.active {
+    background: #3498db;
+    color: white;
+}
+
+.editor-area {
+    display: flex;
+    min-height: 500px;
+}
+
+.editor-panel {
+    flex: 1;
+    padding: 20px;
+    border-right: 1px solid #eaeaea;
+}
+
+.editor-panel:last-child {
+    border-right: none;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.panel-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.mode-switch {
+    display: flex;
+    background: #f1f1f1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mode-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: #3498db;
+    color: white;
+}
+
+textarea, .preview {
+    width: 100%;
+    min-height: 400px;
+    padding: 15px;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.preview {
+    background: #fafafa;
+    overflow-y: auto;
+}
+
+/* 文章列表样式 */
+.post-list {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.post-item {
+    border: 1px solid #eaeaea;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.2s;
+}
+
+.post-item:hover {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.post-item h3 {
+    margin-top: 0;
+}
+
+.post-item p {
+    margin: 10px 0;
+    color: #555;
+}
+
+.post-item small {
+    color: #95a5a6;
+    font-size: 0.9rem;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .editor-area {
+        flex-direction: column;
+    }
+    
+    .editor-panel {
+        border-right: none;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .toolbar-group {
+        margin-bottom: 10px;
+    }
+}

@@ -99,14 +99,11 @@ def error_page():
 
 @app.route('/edit/<int:post_id>')
 def edit_post(post_id):
-    """编辑文章"""
+    """编辑文章(使用富文本编辑器)"""
     try:
         post = db.get_post_by_id(post_id)
         if post:
-            posts = db.get_posts()
-            return render_template('integrated.html',
-                                posts=posts,
-                                edit_mode=True,
+            return render_template('editor.html',
                                 post_id=post_id,
                                 title=post[1],
                                 content=post[2])
