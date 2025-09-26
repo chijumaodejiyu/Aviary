@@ -64,14 +64,15 @@
                                 <button type="button" class="mode-btn" id="rich-text-mode">富文本</button>
                             </div>
                         </div>
-                        <textarea id="editor" name="content" required maxlength="5000">{{ content if content else '' }}</textarea>
+                        <div id="editor" class="rich-text-editor" contenteditable="true" style="min-height: 300px;">{{ content|safe if content else '' }}</div>
+                        <textarea id="markdown-editor" name="content" style="display:none; min-height: 300px; width: 100%;" required maxlength="5000">{{ content if content else '' }}</textarea>
                     </div>
                     
                     <div class="editor-panel">
                         <div class="panel-header">
                             <span class="panel-title">预览</span>
                         </div>
-                        <div class="preview" id="preview"></div>
+                        <div class="preview" id="preview" style="min-height: 300px; overflow: auto; border: 1px solid #eaeaea; padding: 10px; border-radius: 4px;"></div>
                     </div>
                 </div>
                 
@@ -86,45 +87,98 @@
     <script>
         // 富文本编辑器功能脚本
         document.addEventListener('DOMContentLoaded', function() {
-            const editor = document.getElementById('editor');
+            const richTextEditor = document.getElementById('editor');
+            const markdownEditor = document.getElementById('markdown-editor');
             const preview = document.getElementById('preview');
             const markdownMode = document.getElementById('markdown-mode');
             const richTextMode = document.getElementById('rich-text-mode');
             
             // 初始化编辑器
-            editor.style.display = 'block';
+            richTextEditor.style.display = 'block';
+            markdownEditor.style.display = 'none';
             
             // 工具栏按钮功能
             document.querySelectorAll('[data-command]').forEach(button => {
                 button.addEventListener('click', function() {
                     const command = this.getAttribute('data-command');
                     document.execCommand(command, false, null);
-                    editor.focus();
+                    richTextEditor.focus();
                 });
             });
             
             // 图片上传
+            document.getElementById('image-upload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        
+                        const range = window.getSelection().getRangeAt(0);
+                        range.insertNode(img);
+                        richTextEditor.focus();
+                    };
+                    reader.readAsDataURL(file);
+                }
+                this.value = ''; // 清除选择，允许重复选择同一文件
+            });
+
             document.getElementById('image-btn').addEventListener('click', function() {
                 document.getElementById('image-upload').click();
+            });
+
+            // 链接插入
+            document.querySelector('[data-command="createLink"]').addEventListener('click', function() {
+                const url = prompt('请输入链接地址:', 'http://');
+                if (url) {
+                    document.execCommand('createLink', false, url);
+                    richTextEditor.focus();
+                }
             });
             
             // 模式切换
             markdownMode.addEventListener('click', function() {
                 this.classList.add('active');
                 richTextMode.classList.remove('active');
-                // 切换到Markdown模式逻辑
+                markdownEditor.value = richTextEditor.innerHTML;
+                richTextEditor.style.display = 'none';
+                markdownEditor.style.display = 'block';
             });
             
             richTextMode.addEventListener('click', function() {
                 this.classList.add('active');
                 markdownMode.classList.remove('active');
-                // 切换到富文本模式逻辑
+                richTextEditor.innerHTML = markdownEditor.value;
+                markdownEditor.style.display = 'none';
+                richTextEditor.style.display = 'block';
             });
             
-            // 实时预览
-            editor.addEventListener('input', function() {
-                preview.innerHTML = this.value;
+            // 表单提交处理
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // 确保内容同步
+                if (richTextEditor.style.display !== 'none') {
+                    markdownEditor.value = richTextEditor.innerHTML;
+                }
+                return true; // 允许表单提交
             });
+
+            // 实时预览
+            function updatePreview() {
+                if (markdownMode.classList.contains('active')) {
+                    preview.innerHTML = markdownEditor.value;
+                } else {
+                    preview.innerHTML = richTextEditor.innerHTML;
+                }
+            }
+
+            markdownEditor.addEventListener('input', updatePreview);
+            richTextEditor.addEventListener('input', updatePreview);
+            
+            // 初始化预览
+            updatePreview();
         });
     </script>
 </body>

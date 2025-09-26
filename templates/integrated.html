@@ -20,10 +20,10 @@
             <div class="panel-header">
                 <span class="panel-title">文章列表</span>
             </div>
-            {% for post in posts %}
+            {% for post in posts[:3] %}
             <div class="post-item">
                 <h3>{{ post.title }}</h3>
-                <p>{{ post.content }}</p>
+                <p>{{ post.content|safe }}</p>
                 <small>{{ post.created_at }}</small>
                 <div class="actions">
                 <a href="/edit/{{ post.id }}" class="btn btn-primary">编辑</a>
@@ -31,6 +31,25 @@
                 </div>
             </div>
             {% endfor %}
+            
+            {% if posts|length > 3 %}
+            <div class="pagination">
+                <button id="show-more" class="btn btn-secondary">查看更多文章</button>
+                <div id="hidden-posts" style="display:none;">
+                    {% for post in posts[3:] %}
+                    <div class="post-item">
+                        <h3>{{ post.title }}</h3>
+                        <p>{{ post.content|safe }}</p>
+                        <small>{{ post.created_at }}</small>
+                        <div class="actions">
+                            <a href="/edit/{{ post.id }}" class="btn btn-primary">编辑</a>
+                            <a href="/delete/{{ post.id }}" class="btn btn-danger">删除</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- 新建文章按钮 -->
@@ -39,7 +58,26 @@
                 <i class="fas fa-plus"></i> 新建文章
             </a>
         </div>
-        <h1>by RyanZhang</h1>
+        <h5>by RyanZhang</h5>
     </div>
+
+    <script>
+        // 文章列表展开/折叠功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const showMoreBtn = document.getElementById('show-more');
+            if (showMoreBtn) {
+                const hiddenPosts = document.getElementById('hidden-posts');
+                showMoreBtn.addEventListener('click', function() {
+                    if (hiddenPosts.style.display === 'none') {
+                        hiddenPosts.style.display = 'block';
+                        this.textContent = '收起文章';
+                    } else {
+                        hiddenPosts.style.display = 'none';
+                        this.textContent = '查看更多文章';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 # app.py - 所有功能在一个文件中
 from flask import Flask, request, render_template, redirect
-from markupsafe import escape
+from markupsafe import escape, Markup
+import bleach
 import sqlite3
 from datetime import datetime
 import xml.etree.ElementTree as ET
@@ -36,6 +37,14 @@ class Database:
                     created_at TEXT
                 )
             ''')
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS images (
+                    id INTEGER PRIMARY KEY,
+                    post_id INTEGER,
+                    filename TEXT,
+                    FOREIGN KEY(post_id) REFERENCES posts(id)
+                )
+            ''')
             conn.commit()
     
     def get_posts(self, limit=None):
@@ -51,11 +60,19 @@ class Database:
     def add_post(self, title, content):
         """添加新文章"""
         with self.get_connection() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 'INSERT INTO posts (title, content, created_at) VALUES (?, ?, ?)',
-                (escape(title), escape(content), datetime.now().isoformat())
+                (escape(title), bleach.clean(content, 
+                    tags=['b', 'i', 'u', 'h1', 'h2', 'h3', 'p', 'br', 'ul', 'ol', 'li', 'blockquote', 'img'],
+                    attributes={
+                        '*': ['style'],
+                        'img': ['src', 'alt', 'style']
+                    },
+                    protocols=['http', 'https']
+                ), datetime.now().isoformat())
             )
             conn.commit()
+            return cursor.lastrowid
 
     def get_post_by_id(self, post_id):
         """根据ID获取文章"""
@@ -67,12 +84,36 @@ class Database:
             )
             return cursor.fetchone()
 
+    def add_image(self, post_id, filename):
+        """添加图片记录"""
+        with self.get_connection() as conn:
+            conn.execute(
+                'INSERT INTO images (post_id, filename) VALUES (?, ?)',
+                (post_id, filename)
+            )
+            conn.commit()
+
+    def get_images_by_post(self, post_id):
+        """获取文章关联的图片"""
+        with self.get_connection() as conn:
+            return conn.execute(
+                'SELECT filename FROM images WHERE post_id = ?',
+                (post_id,)
+            ).fetchall()
+
     def update_post(self, post_id, title, content):
         """更新文章"""
         with self.get_connection() as conn:
             conn.execute(
                 'UPDATE posts SET title = ?, content = ? WHERE id = ?',
-                (escape(title), escape(content), post_id)
+                (escape(title), bleach.clean(content, 
+                    tags=['b', 'i', 'u', 'h1', 'h2', 'h3', 'p', 'br', 'ul', 'ol', 'li', 'blockquote', 'img'],
+                    attributes={
+                        '*': ['style'],
+                        'img': ['src', 'alt', 'style']
+                    },
+                    protocols=['http', 'https']
+                ), post_id)
             )
             conn.commit()
 
@@ -133,7 +174,7 @@ def save_post():
             return "标题和内容不能为空", 400
         if len(title) > 100:
             return "标题过长", 400
-        if len(content) > 5000:
+        if len(content) > 50000:  # 提高限制以适应Base64图片
             return "内容过长", 400
             
         if post_id and post_id != 'None':
