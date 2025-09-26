@@ -41,6 +41,7 @@ class Database:
     def get_posts(self, limit=None):
         """获取文章列表"""
         with self.get_connection() as conn:
+            conn.row_factory = sqlite3.Row
             query = 'SELECT * FROM posts ORDER BY id DESC'
             if limit:
                 # 使用参数化查询防止SQL注入
@@ -59,6 +60,7 @@ class Database:
     def get_post_by_id(self, post_id):
         """根据ID获取文章"""
         with self.get_connection() as conn:
+            conn.row_factory = sqlite3.Row
             cursor = conn.execute(
                 'SELECT * FROM posts WHERE id = ?', 
                 (post_id,)
@@ -97,16 +99,23 @@ def error_page():
 
 
 
-@app.route('/edit/<int:post_id>')
+@app.route('/edit/<post_id>')
 def edit_post(post_id):
-    """编辑文章(使用富文本编辑器)"""
+    """编辑或新建文章(使用富文本编辑器)"""
     try:
+        if post_id == 'new':
+            return render_template('editor.html',
+                                post_id=None,
+                                title='',
+                                content='')
+        
+        post_id = int(post_id)
         post = db.get_post_by_id(post_id)
         if post:
             return render_template('editor.html',
                                 post_id=post_id,
-                                title=post[1],
-                                content=post[2])
+                                title=post['title'],
+                                content=post['content'])
         return redirect('/')
     except Exception as e:
         print(f"编辑错误: {e}")
@@ -177,11 +186,11 @@ def rss_feed():
     
     for post in posts:
         item = ET.SubElement(channel, 'item')
-        ET.SubElement(item, 'title').text = post[1]
-        ET.SubElement(item, 'description').text = post[2]
-        ET.SubElement(item, 'pubDate').text = post[3]
-        ET.SubElement(item, 'guid').text = f"{request.url_root}post/{post[0]}"
-        ET.SubElement(item, 'link').text = f"{request.url_root}post/{post[0]}"
+        ET.SubElement(item, 'title').text = post['title']
+        ET.SubElement(item, 'description').text = post['content']
+        ET.SubElement(item, 'pubDate').text = post['created_at']
+        ET.SubElement(item, 'guid').text = f"{request.url_root}post/{post['id']}"
+        ET.SubElement(item, 'link').text = f"{request.url_root}post/{post['id']}"
     
     # 添加XML声明和正确的内容类型
     response = app.response_class(
