@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aviary - 文章推送管理系统v1.0</title>
+    <style>
+        .post-list { margin-bottom: 20px; }
+        .post-item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .editor { margin: 20px 0; }
+        .actions { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Aviary</h1>
+    
+    <!-- 文章编辑器 -->
+    <div class="editor">
+        <h2>{{ '编辑文章' if edit_mode else '新建文章' }}</h2>
+        <form method="POST" action="/save">
+            <input type="hidden" name="post_id" value="{{ post_id }}">
+            <div>
+                <label>标题:</label>
+                <input type="text" name="title" value="{{ title }}" required maxlength="100">
+            </div>
+            <div>
+                <label>内容:</label>
+                <textarea name="content" required maxlength="5000">{{ content }}</textarea>
+            </div>
+            <button type="submit">保存</button>
+            <a href="/">取消</a>
+        </form>
+    </div>
+
+    <!-- 文章列表 -->
+    <div class="post-list">
+        <h2>文章列表</h2>
+        {% for post in posts %}
+        <div class="post-item">
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.content }}</p>
+            <small>{{ post.created_at }}</small>
+            <div class="actions">
+                <a href="/edit/{{ post.id }}">编辑</a>
+                <a href="/delete/{{ post.id }}">删除</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

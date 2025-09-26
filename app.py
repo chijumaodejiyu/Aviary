@@ -56,30 +56,70 @@ class Database:
             )
             conn.commit()
 
+    def get_post_by_id(self, post_id):
+        """根据ID获取文章"""
+        with self.get_connection() as conn:
+            cursor = conn.execute(
+                'SELECT * FROM posts WHERE id = ?', 
+                (post_id,)
+            )
+            return cursor.fetchone()
+
+    def update_post(self, post_id, title, content):
+        """更新文章"""
+        with self.get_connection() as conn:
+            conn.execute(
+                'UPDATE posts SET title = ?, content = ? WHERE id = ?',
+                (escape(title), escape(content), post_id)
+            )
+            conn.commit()
+
+    def delete_post(self, post_id):
+        """删除文章"""
+        with self.get_connection() as conn:
+            conn.execute(
+                'DELETE FROM posts WHERE id = ?',
+                (post_id,)
+            )
+            conn.commit()
+
 db = Database()
 
 @app.errorhandler(500)
 def internal_error(error):
     return "服务器内部错误", 500
 
-@app.route('/')
-def index():
-    """首页显示最新推文"""
-    try:
-        posts = db.get_posts()
-        return render_template('list.html', posts=posts)
-    except Exception as e:
-        print(f"首页错误: {e}")
-        return redirect('/error')
-
 @app.route('/error')
 def error_page():
     return "发生错误，请稍后再试", 500
 
-@app.route('/new', methods=['GET', 'POST'])
-def new_post():
-    """发布新推文"""
-    if request.method == 'POST':
+
+
+
+
+@app.route('/edit/<int:post_id>')
+def edit_post(post_id):
+    """编辑文章"""
+    try:
+        post = db.get_post_by_id(post_id)
+        if post:
+            posts = db.get_posts()
+            return render_template('integrated.html',
+                                posts=posts,
+                                edit_mode=True,
+                                post_id=post_id,
+                                title=post[1],
+                                content=post[2])
+        return redirect('/')
+    except Exception as e:
+        print(f"编辑错误: {e}")
+        return redirect('/error')
+
+@app.route('/save', methods=['POST'])
+def save_post():
+    """保存文章(新建或更新)"""
+    try:
+        post_id = request.form.get('post_id')
         title = request.form.get('title', '').strip()
         content = request.form.get('content', '').strip()
         
@@ -90,27 +130,68 @@ def new_post():
         if len(content) > 5000:
             return "内容过长", 400
             
-        db.add_post(title, content)
+        if post_id and post_id != 'None':
+            db.update_post(post_id, title, content)
+        else:
+            db.add_post(title, content)
+            
         return redirect('/')
-    return render_template('editor.html')
+    except Exception as e:
+        print(f"保存错误: {e}")
+        return redirect('/error')
+
+@app.route('/delete/<int:post_id>')
+def delete_post(post_id):
+    """删除文章"""
+    try:
+        db.delete_post(post_id)
+        return redirect('/')
+    except Exception as e:
+        print(f"删除错误: {e}")
+        return redirect('/error')
+
+@app.route('/')
+def index():
+    """集成页面主入口"""
+    try:
+        posts = db.get_posts()
+        return render_template('integrated.html', 
+                            posts=posts,
+                            edit_mode=False,
+                            post_id=None,
+                            title='',
+                            content='')
+    except Exception as e:
+        print(f"首页错误: {e}")
+        return redirect('/error')
 
 @app.route('/rss')
 def rss_feed():
     """生成RSS订阅"""
     posts = db.get_posts(20)
     
-    # 简单生成RSS XML
+    # 生成符合RSS 2.0规范的XML
     rss = ET.Element('rss', version='2.0')
     channel = ET.SubElement(rss, 'channel')
     ET.SubElement(channel, 'title').text = "我的推文"
+    ET.SubElement(channel, 'link').text = request.url_root
+    ET.SubElement(channel, 'description').text = "我的最新推文更新"
+    ET.SubElement(channel, 'lastBuildDate').text = datetime.now().isoformat()
     
     for post in posts:
         item = ET.SubElement(channel, 'item')
         ET.SubElement(item, 'title').text = post[1]
         ET.SubElement(item, 'description').text = post[2]
         ET.SubElement(item, 'pubDate').text = post[3]
+        ET.SubElement(item, 'guid').text = f"{request.url_root}post/{post[0]}"
+        ET.SubElement(item, 'link').text = f"{request.url_root}post/{post[0]}"
     
-    return ET.tostring(rss, encoding='unicode')
+    # 添加XML声明和正确的内容类型
+    response = app.response_class(
+        ET.tostring(rss, encoding='unicode'),
+        mimetype='application/rss+xml'
+    )
+    return response
 
 if __name__ == '__main__':
     db.init_db()
